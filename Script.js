@@ -1,4 +1,4 @@
-window.addEventListener("DOMContentLoaded", function(){
+document.addEventListener("DOMContentLoaded", function(){
 
 let productData = JSON.parse(localStorage.getItem("inventory_products")) || [];
 let salesHistory = JSON.parse(localStorage.getItem("inventory_sales")) || [];
@@ -8,13 +8,12 @@ let deleteId = null;
 let selected = null;
 let qty = 1;
 
-/* ---------- SAVE ---------- */
 function save(){
 localStorage.setItem("inventory_products", JSON.stringify(productData));
 localStorage.setItem("inventory_sales", JSON.stringify(salesHistory));
 }
 
-/* ---------- NAVIGATION ---------- */
+/* NAVIGATION */
 window.showSection = function(id,btn){
 document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
@@ -23,52 +22,37 @@ btn.classList.add("active");
 render();
 };
 
-/* ---------- OPEN ADD MODAL ---------- */
+/* OPEN MODAL */
 document.getElementById("fabBtn").addEventListener("click", function(){
-editId = null;
+editId=null;
 document.getElementById("modalTitle").innerText="Add Product";
-document.getElementById("name").value="";
-document.getElementById("buy").value="";
-document.getElementById("sell").value="";
-document.getElementById("stock").value="";
-document.getElementById("productModal").style.display="flex";
+name.value=""; buy.value=""; sell.value=""; stock.value="";
+productModal.style.display="flex";
 });
 
-/* ---------- CLOSE MODALS ---------- */
-window.closeProductModal = function(){
-document.getElementById("productModal").style.display="none";
+window.closeProductModal=function(){
+productModal.style.display="none";
 };
 
-window.closeDeleteModal = function(){
-document.getElementById("deleteModal").style.display="none";
+window.closeDeleteModal=function(){
+deleteModal.style.display="none";
 };
 
-/* ---------- SAVE PRODUCT (FIXED) ---------- */
+/* SAVE PRODUCT (FIXED) */
 document.getElementById("saveBtn").addEventListener("click", function(){
 
-let name = document.getElementById("name").value.trim();
-let buy = +document.getElementById("buy").value;
-let sell = +document.getElementById("sell").value;
-let stock = +document.getElementById("stock").value;
+let n=name.value.trim();
+if(!n) return;
 
-if(!name) return;
+let b=+buy.value;
+let s=+sell.value;
+let st=+stock.value;
 
 if(editId){
-let p = productData.find(x=>x.id===editId);
-if(p){
-p.name=name;
-p.buy=buy;
-p.sell=sell;
-p.stock=stock;
-}
+let p=productData.find(x=>x.id===editId);
+if(p){ p.name=n; p.buy=b; p.sell=s; p.stock=st; }
 }else{
-productData.push({
-id:Date.now(),
-name,
-buy,
-sell,
-stock
-});
+productData.push({id:Date.now(),name:n,buy:b,sell:s,stock:st});
 }
 
 save();
@@ -76,9 +60,9 @@ closeProductModal();
 render();
 });
 
-/* ---------- DELETE ---------- */
+/* DELETE */
 document.getElementById("confirmDeleteBtn").addEventListener("click", function(){
-productData = productData.filter(p=>p.id!==deleteId);
+productData=productData.filter(p=>p.id!==deleteId);
 save();
 closeDeleteModal();
 render();
@@ -86,31 +70,70 @@ render();
 
 window.openDelete=function(id){
 deleteId=id;
-document.getElementById("deleteModal").style.display="flex";
+deleteModal.style.display="flex";
 };
 
 window.openEdit=function(id){
-let p = productData.find(x=>x.id===id);
+let p=productData.find(x=>x.id===id);
 if(!p) return;
 editId=id;
-document.getElementById("modalTitle").innerText="Edit Product";
-document.getElementById("name").value=p.name;
-document.getElementById("buy").value=p.buy;
-document.getElementById("sell").value=p.sell;
-document.getElementById("stock").value=p.stock;
-document.getElementById("productModal").style.display="flex";
+modalTitle.innerText="Edit Product";
+name.value=p.name; buy.value=p.buy; sell.value=p.sell; stock.value=p.stock;
+productModal.style.display="flex";
 };
 
-/* ---------- RENDER (FIXED VARIABLE CONFLICT) ---------- */
+/* SALES */
+window.selectProduct=function(id){
+selected=productData.find(p=>p.id===id);
+qty=1;
+render();
+};
+
+window.changeQty=function(n){
+qty+=n;
+if(qty<1) qty=1;
+render();
+};
+
+window.completeSale=function(){
+if(!selected || selected.stock<qty) return;
+selected.stock-=qty;
+
+salesHistory.push({
+productId:selected.id,
+revenue:selected.sell*qty,
+profit:(selected.sell-selected.buy)*qty,
+date:new Date().toISOString()
+});
+
+save();
+selected=null;
+qty=1;
+render();
+};
+
+/* RENDER */
 function render(){
 
-document.getElementById("totalProducts").innerText = productData.length;
-document.getElementById("lowStock").innerText = productData.filter(p=>p.stock<20).length;
+totalProducts.innerText=productData.length;
+lowStock.innerText=productData.filter(p=>p.stock<20).length;
 
-let container = document.getElementById("products");
+let now=new Date();
+let monthSales=salesHistory.filter(s=>{
+let d=new Date(s.date);
+return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+});
 
-container.innerHTML = productData.map(p=>{
-let lowClass = p.stock<20 ? "stock-low" : "";
+let monthRev=monthSales.reduce((a,b)=>a+b.revenue,0);
+let monthProf=monthSales.reduce((a,b)=>a+b.profit,0);
+
+monthRevenue.innerText="₹"+monthRev;
+monthProfit.innerText="₹"+monthProf;
+
+/* PRODUCTS */
+document.getElementById("products").innerHTML =
+productData.map(p=>{
+let low=p.stock<20?"stock-low":"";
 return `
 <div class="product-card">
 <div class="product-header">
@@ -121,11 +144,37 @@ return `
 </div>
 </div>
 Buy ₹${p.buy} | Sell ₹${p.sell}
-<div class="stock-badge ${lowClass}">Stock: ${p.stock}</div>
-</div>
-`;
+<div class="stock-badge ${low}">Stock: ${p.stock}</div>
+</div>`;
 }).join("");
 
+/* SALES */
+document.getElementById("sales").innerHTML =
+productData.map(p=>{
+let active=selected && selected.id===p.id ? "active":"";
+return `<div class="sales-product ${active}" onclick="selectProduct(${p.id})">
+🛒 ${p.name} (₹${p.sell}) - Stock ${p.stock}
+</div>`;
+}).join("") + (selected?`
+<div style="text-align:center;margin-top:10px;">Selected: ${selected.name}</div>
+<div class="qty-box">
+<div class="qty-btn" onclick="changeQty(-1)">−</div>
+<div>${qty}</div>
+<div class="qty-btn" onclick="changeQty(1)">+</div>
+</div>
+<button class="primary" onclick="completeSale()">Complete Sale</button>
+`:"");
+
+/* REPORT */
+document.getElementById("report").innerHTML=`
+<div class="product-card">
+<h3>This Month Revenue</h3>
+<p class="green">₹${monthRev}</p>
+</div>
+<div class="product-card">
+<h3>This Month Profit</h3>
+<p class="green">₹${monthProf}</p>
+</div>`;
 }
 
 render();
