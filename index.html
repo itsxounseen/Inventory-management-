@@ -22,24 +22,79 @@ font-weight:700;
 
 .container{
 padding:18px;
-padding-bottom:150px;
+padding-bottom:140px;
 }
+
+.section{display:none;}
+.section.active{display:block;}
+
+.cards{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:14px;
+margin-bottom:20px;
+}
+
+.card{
+background:#1e293b;
+padding:18px;
+border-radius:20px;
+box-shadow:0 8px 20px rgba(0,0,0,0.4);
+}
+
+.card h3{
+font-size:13px;
+color:#94a3b8;
+margin-bottom:6px;
+}
+
+.card p{
+font-size:20px;
+font-weight:bold;
+}
+
+.green{color:#22c55e;}
+.red{color:#ef4444;}
 
 .product-card{
 background:#1e293b;
 padding:18px;
 border-radius:20px;
 margin-bottom:15px;
-box-shadow:0 8px 25px rgba(0,0,0,0.4);
+box-shadow:0 8px 20px rgba(0,0,0,0.4);
+}
+
+.product-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:6px;
+}
+
+.action-icons{
+display:flex;
+gap:12px;
+}
+
+.icon-btn{
+background:none;
+border:none;
+color:#cbd5e1;
+font-size:18px;
+cursor:pointer;
+}
+
+.icon-btn:hover{
+color:white;
 }
 
 .stock-badge{
 display:inline-block;
-margin-top:10px;
+margin-top:8px;
 padding:6px 14px;
 border-radius:20px;
-font-weight:600;
 font-size:13px;
+font-weight:600;
 }
 
 .stock-good{
@@ -52,7 +107,38 @@ border:1px solid rgba(34,197,94,0.4);
 background:rgba(239,68,68,0.15);
 color:#ef4444;
 border:1px solid rgba(239,68,68,0.4);
-box-shadow:0 0 10px rgba(239,68,68,0.4);
+box-shadow:0 0 8px rgba(239,68,68,0.4);
+}
+
+.sales-product{
+background:#1e293b;
+padding:15px;
+border-radius:16px;
+margin-bottom:12px;
+cursor:pointer;
+}
+
+.sales-product.active{
+border:2px solid #22c55e;
+background:#132a1d;
+}
+
+.qty-box{
+display:flex;
+justify-content:center;
+gap:15px;
+margin-top:12px;
+}
+
+.qty-btn{
+width:40px;
+height:40px;
+border-radius:50%;
+background:#334155;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
 }
 
 button{
@@ -67,7 +153,6 @@ cursor:pointer;
 
 .primary{background:#3b82f6;color:white;}
 .danger{background:#ef4444;color:white;}
-.edit{background:#f59e0b;color:white;}
 
 input{
 width:100%;
@@ -96,26 +181,26 @@ z-index:100;
 .modal-content{
 background:#1e293b;
 padding:20px;
-border-radius:22px;
+border-radius:20px;
 width:100%;
 }
 
 .fab{
 position:fixed;
-bottom:90px;
+bottom:85px;
 left:50%;
 transform:translateX(-50%);
 background:#22c55e;
-width:70px;
-height:70px;
+width:65px;
+height:65px;
 border-radius:50%;
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:30px;
-box-shadow:0 12px 30px rgba(0,0,0,0.6);
+font-size:28px;
+box-shadow:0 10px 25px rgba(0,0,0,0.5);
 cursor:pointer;
-border:6px solid #0f172a;
+border:5px solid #0f172a;
 }
 
 .tabs{
@@ -136,8 +221,16 @@ box-shadow:0 10px 30px rgba(0,0,0,0.6);
 .tabs button{
 background:none;
 border:none;
+color:#94a3b8;
+font-size:13px;
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:4px;
+}
+
+.tabs button.active{
 color:#22c55e;
-font-size:14px;
 }
 </style>
 </head>
@@ -146,11 +239,38 @@ font-size:14px;
 
 <header>📊 Smart Inventory</header>
 
-<div class="container" id="products"></div>
+<div class="container">
 
-<div class="fab" onclick="openAddModal()">＋</div>
+<div id="home" class="section active">
+<div class="cards">
+<div class="card">
+<h3>📦 Products</h3>
+<p id="totalProducts">0</p>
+</div>
+<div class="card">
+<h3>⚠️ Low Stock</h3>
+<p id="lowStock" class="red">0</p>
+</div>
+<div class="card">
+<h3>📅 This Month Revenue</h3>
+<p id="monthRevenue" class="green">₹0</p>
+</div>
+<div class="card">
+<h3>📈 This Month Profit</h3>
+<p id="monthProfit" class="green">₹0</p>
+</div>
+</div>
+</div>
 
-<!-- ADD / EDIT MODAL -->
+<div id="products" class="section"></div>
+<div id="sales" class="section"></div>
+<div id="report" class="section"></div>
+
+</div>
+
+<div class="fab" onclick="openProductModal()">＋</div>
+
+<!-- ADD/EDIT MODAL -->
 <div class="modal" id="productModal">
 <div class="modal-content">
 <h3 id="modalTitle">Add Product</h3>
@@ -163,118 +283,195 @@ font-size:14px;
 </div>
 </div>
 
-<!-- DELETE CONFIRM MODAL -->
+<!-- DELETE CONFIRM -->
 <div class="modal" id="deleteModal">
 <div class="modal-content">
-<h3>⚠️ Confirm Delete</h3>
-<p style="margin-top:10px;">Are you sure you want to delete this product?</p>
-<button class="danger" onclick="confirmDelete()">Yes, Delete</button>
+<h3>⚠ Confirm Delete</h3>
+<p style="margin-top:10px;">Are you sure?</p>
+<button class="danger" onclick="confirmDelete()">Yes Delete</button>
 <button class="primary" onclick="closeDeleteModal()">Cancel</button>
 </div>
 </div>
 
 <div class="tabs">
-<button>📦 Products</button>
+<button onclick="showSection('home',this)" class="active">🏠 Home</button>
+<button onclick="showSection('products',this)">📦 Products</button>
+<button onclick="showSection('sales',this)">🛒 Sales</button>
+<button onclick="showSection('report',this)">📊 Report</button>
 </div>
 
 <script>
-let products = JSON.parse(localStorage.getItem("products")) || [];
-let editId = null;
-let deleteId = null;
+let products=JSON.parse(localStorage.getItem("products"))||[];
+let salesHistory=JSON.parse(localStorage.getItem("salesHistory"))||[];
+let editId=null;
+let deleteId=null;
+let selected=null;
+let qty=1;
 
 function save(){
-localStorage.setItem("products", JSON.stringify(products));
+localStorage.setItem("products",JSON.stringify(products));
+localStorage.setItem("salesHistory",JSON.stringify(salesHistory));
 }
 
-function openAddModal(){
-editId = null;
-modalTitle.innerText = "Add Product";
-name.value = "";
-buy.value = "";
-sell.value = "";
-stock.value = "";
-productModal.style.display = "flex";
+function showSection(id,btn){
+document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+btn.classList.add("active");
+render();
 }
 
-function openEditModal(id){
-let p = products.find(x => x.id === id);
-editId = id;
-modalTitle.innerText = "Edit Product";
-name.value = p.name;
-buy.value = p.buy;
-sell.value = p.sell;
-stock.value = p.stock;
-productModal.style.display = "flex";
+function openProductModal(id=null){
+if(id){
+let p=products.find(x=>x.id===id);
+editId=id;
+modalTitle.innerText="Edit Product";
+name.value=p.name;
+buy.value=p.buy;
+sell.value=p.sell;
+stock.value=p.stock;
+}else{
+editId=null;
+modalTitle.innerText="Add Product";
+name.value="";
+buy.value="";
+sell.value="";
+stock.value="";
+}
+productModal.style.display="flex";
 }
 
-function closeProductModal(){
-productModal.style.display = "none";
-}
+function closeProductModal(){productModal.style.display="none";}
 
 function saveProduct(){
-if(!name.value) return;
+if(!name.value)return;
 
 if(editId){
-let p = products.find(x => x.id === editId);
-p.name = name.value;
-p.buy = +buy.value;
-p.sell = +sell.value;
-p.stock = +stock.value;
+let p=products.find(x=>x.id===editId);
+p.name=name.value;
+p.buy=+buy.value;
+p.sell=+sell.value;
+p.stock=+stock.value;
 }else{
 products.push({
-id: Date.now(),
-name: name.value,
-buy: +buy.value,
-sell: +sell.value,
-stock: +stock.value
+id:Date.now(),
+name:name.value,
+buy:+buy.value,
+sell:+sell.value,
+stock:+stock.value
 });
 }
-
 save();
 closeProductModal();
 render();
 }
 
 function openDeleteModal(id){
-deleteId = id;
-deleteModal.style.display = "flex";
+deleteId=id;
+deleteModal.style.display="flex";
 }
 
-function closeDeleteModal(){
-deleteModal.style.display = "none";
-deleteId = null;
-}
+function closeDeleteModal(){deleteModal.style.display="none";}
 
 function confirmDelete(){
-products = products.filter(p => p.id !== deleteId);
+products=products.filter(p=>p.id!==deleteId);
 save();
 closeDeleteModal();
 render();
 }
 
-function render(){
-let html = "";
-products.forEach(p=>{
-let stockClass = p.stock < 20 ? "stock-low" : "stock-good";
-html += `
-<div class="product-card">
-<strong>📦 ${p.name}</strong><br>
-Buy ₹${p.buy} | Sell ₹${p.sell}
-<div class="stock-badge ${stockClass}">
-Stock: ${p.stock}
-</div>
-<button class="edit" onclick="openEditModal(${p.id})">✏️ Edit</button>
-<button class="danger" onclick="openDeleteModal(${p.id})">🗑 Delete</button>
-</div>
-`;
-});
-productsDiv.innerHTML = html;
+function selectProduct(id){
+selected=products.find(p=>p.id===id);
+qty=1;
+render();
 }
 
-let productsDiv = document.getElementById("products");
-let productModal = document.getElementById("productModal");
-let deleteModal = document.getElementById("deleteModal");
-let modalTitle = document.getElementById("modalTitle");
+function changeQty(n){
+qty+=n;
+if(qty<1)qty=1;
+render();
+}
+
+function completeSale(){
+if(!selected||selected.stock<qty)return;
+selected.stock-=qty;
+
+salesHistory.push({
+productId:selected.id,
+revenue:selected.sell*qty,
+profit:(selected.sell-selected.buy)*qty,
+date:new Date().toISOString()
+});
+
+save();
+selected=null;
+qty=1;
+render();
+}
+
+function render(){
+
+totalProducts.innerText=products.length;
+lowStock.innerText=products.filter(p=>p.stock<20).length;
+
+let now=new Date();
+let monthSales=salesHistory.filter(s=>{
+let d=new Date(s.date);
+return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+});
+
+monthRevenue.innerText="₹"+monthSales.reduce((sum,s)=>sum+s.revenue,0);
+monthProfit.innerText="₹"+monthSales.reduce((sum,s)=>sum+s.profit,0);
+
+let pHTML="";
+products.forEach(p=>{
+let stockClass=p.stock<20?"stock-low":"stock-good";
+pHTML+=`
+<div class="product-card">
+<div class="product-header">
+<strong>📦 ${p.name}</strong>
+<div class="action-icons">
+<button class="icon-btn" onclick="openProductModal(${p.id})">✏️</button>
+<button class="icon-btn" onclick="openDeleteModal(${p.id})">🗑</button>
+</div>
+</div>
+Buy ₹${p.buy} | Sell ₹${p.sell}
+<div class="stock-badge ${stockClass}">Stock: ${p.stock}</div>
+</div>`;
+});
+products.innerHTML=pHTML;
+
+let sHTML="";
+products.forEach(p=>{
+let active=selected&&selected.id===p.id?"active":"";
+sHTML+=`
+<div class="sales-product ${active}" onclick="selectProduct(${p.id})">
+🛒 ${p.name} (₹${p.sell}) - Stock ${p.stock}
+</div>`;
+});
+if(selected){
+sHTML+=`
+<div style="margin-top:10px;text-align:center;">Selected: ${selected.name}</div>
+<div class="qty-box">
+<div class="qty-btn" onclick="changeQty(-1)">−</div>
+<div>${qty}</div>
+<div class="qty-btn" onclick="changeQty(1)">+</div>
+</div>
+<button class="primary" onclick="completeSale()">Complete Sale</button>`;
+}
+sales.innerHTML=sHTML;
+
+report.innerHTML=`
+<div class="card">
+<h3>This Month Revenue</h3>
+<p class="green">₹${monthSales.reduce((sum,s)=>sum+s.revenue,0)}</p>
+</div>
+<div class="card">
+<h3>This Month Profit</h3>
+<p class="green">₹${monthSales.reduce((sum,s)=>sum+s.profit,0)}</p>
+</div>
+`;
+}
 
 render();
 </script>
