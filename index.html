@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Inventory Pro</title>
+<title>Smart Inventory</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui;}
@@ -24,9 +24,6 @@ font-weight:700;
 padding:18px;
 padding-bottom:150px;
 }
-
-.section{display:none;}
-.section.active{display:block;}
 
 .product-card{
 background:#1e293b;
@@ -93,6 +90,7 @@ display:none;
 align-items:center;
 justify-content:center;
 padding:20px;
+z-index:100;
 }
 
 .modal-content{
@@ -138,16 +136,8 @@ box-shadow:0 10px 30px rgba(0,0,0,0.6);
 .tabs button{
 background:none;
 border:none;
-color:#94a3b8;
-font-size:13px;
-display:flex;
-flex-direction:column;
-align-items:center;
-gap:5px;
-}
-
-.tabs button.active{
 color:#22c55e;
+font-size:14px;
 }
 </style>
 </head>
@@ -156,13 +146,12 @@ color:#22c55e;
 
 <header>📊 Smart Inventory</header>
 
-<div class="container">
-<div id="products" class="section active"></div>
-</div>
+<div class="container" id="products"></div>
 
 <div class="fab" onclick="openAddModal()">＋</div>
 
-<div class="modal" id="modal">
+<!-- ADD / EDIT MODAL -->
+<div class="modal" id="productModal">
 <div class="modal-content">
 <h3 id="modalTitle">Add Product</h3>
 <input id="name" placeholder="Product Name">
@@ -170,102 +159,124 @@ color:#22c55e;
 <input id="sell" type="number" placeholder="Selling Price">
 <input id="stock" type="number" placeholder="Stock Quantity">
 <button class="primary" onclick="saveProduct()">Save</button>
-<button class="danger" onclick="closeModal()">Cancel</button>
+<button class="danger" onclick="closeProductModal()">Cancel</button>
+</div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal" id="deleteModal">
+<div class="modal-content">
+<h3>⚠️ Confirm Delete</h3>
+<p style="margin-top:10px;">Are you sure you want to delete this product?</p>
+<button class="danger" onclick="confirmDelete()">Yes, Delete</button>
+<button class="primary" onclick="closeDeleteModal()">Cancel</button>
 </div>
 </div>
 
 <div class="tabs">
-<button class="active">📦 Products</button>
+<button>📦 Products</button>
 </div>
 
 <script>
-
-let products=JSON.parse(localStorage.getItem("products"))||[];
-let editId=null;
+let products = JSON.parse(localStorage.getItem("products")) || [];
+let editId = null;
+let deleteId = null;
 
 function save(){
-localStorage.setItem("products",JSON.stringify(products));
+localStorage.setItem("products", JSON.stringify(products));
 }
 
 function openAddModal(){
-editId=null;
-modalTitle.innerText="Add Product";
-name.value="";
-buy.value="";
-sell.value="";
-stock.value="";
-modal.style.display="flex";
+editId = null;
+modalTitle.innerText = "Add Product";
+name.value = "";
+buy.value = "";
+sell.value = "";
+stock.value = "";
+productModal.style.display = "flex";
 }
 
 function openEditModal(id){
-let p=products.find(x=>x.id===id);
-editId=id;
-modalTitle.innerText="Edit Product";
-name.value=p.name;
-buy.value=p.buy;
-sell.value=p.sell;
-stock.value=p.stock;
-modal.style.display="flex";
+let p = products.find(x => x.id === id);
+editId = id;
+modalTitle.innerText = "Edit Product";
+name.value = p.name;
+buy.value = p.buy;
+sell.value = p.sell;
+stock.value = p.stock;
+productModal.style.display = "flex";
 }
 
-function closeModal(){
-modal.style.display="none";
+function closeProductModal(){
+productModal.style.display = "none";
 }
 
 function saveProduct(){
-if(!name.value)return;
+if(!name.value) return;
 
 if(editId){
-let p=products.find(x=>x.id===editId);
-p.name=name.value;
-p.buy=+buy.value;
-p.sell=+sell.value;
-p.stock=+stock.value;
+let p = products.find(x => x.id === editId);
+p.name = name.value;
+p.buy = +buy.value;
+p.sell = +sell.value;
+p.stock = +stock.value;
 }else{
 products.push({
-id:Date.now(),
-name:name.value,
-buy:+buy.value,
-sell:+sell.value,
-stock:+stock.value
+id: Date.now(),
+name: name.value,
+buy: +buy.value,
+sell: +sell.value,
+stock: +stock.value
 });
 }
 
 save();
-closeModal();
+closeProductModal();
 render();
 }
 
-function deleteProduct(id){
-products=products.filter(p=>p.id!==id);
+function openDeleteModal(id){
+deleteId = id;
+deleteModal.style.display = "flex";
+}
+
+function closeDeleteModal(){
+deleteModal.style.display = "none";
+deleteId = null;
+}
+
+function confirmDelete(){
+products = products.filter(p => p.id !== deleteId);
 save();
+closeDeleteModal();
 render();
 }
 
 function render(){
-let html="";
+let html = "";
 products.forEach(p=>{
-let stockClass=p.stock<20?"stock-low":"stock-good";
-html+=`
+let stockClass = p.stock < 20 ? "stock-low" : "stock-good";
+html += `
 <div class="product-card">
 <strong>📦 ${p.name}</strong><br>
 Buy ₹${p.buy} | Sell ₹${p.sell}
 <div class="stock-badge ${stockClass}">
 Stock: ${p.stock}
 </div>
-<button class="edit" onclick="openEditModal(${p.id})">Edit</button>
-<button class="danger" onclick="deleteProduct(${p.id})">Delete</button>
-</div>`;
+<button class="edit" onclick="openEditModal(${p.id})">✏️ Edit</button>
+<button class="danger" onclick="openDeleteModal(${p.id})">🗑 Delete</button>
+</div>
+`;
 });
-productsDiv.innerHTML=html;
+productsDiv.innerHTML = html;
 }
 
-let productsDiv=document.getElementById("products");
-let modal=document.getElementById("modal");
-let modalTitle=document.getElementById("modalTitle");
+let productsDiv = document.getElementById("products");
+let productModal = document.getElementById("productModal");
+let deleteModal = document.getElementById("deleteModal");
+let modalTitle = document.getElementById("modalTitle");
 
 render();
-
 </script>
 
 </body>
