@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Inventory</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto}
+body{background:#0f172a;color:#fff}
+header{padding:20px;font-size:22px;font-weight:700;text-align:center}
+.container{padding:15px;padding-bottom:100px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.card{background:#1e293b;padding:15px;border-radius:16px;box-shadow:0 4px 15px rgba(0,0,0,0.3)}
+.card h3{font-size:14px;color:#94a3b8}
+.card p{font-size:20px;font-weight:bold;margin-top:5px}
+.green{color:#22c55e}
+.red{color:#ef4444}
+.tabs{position:fixed;bottom:0;left:0;width:100%;background:#1e293b;display:flex;justify-content:space-around;padding:12px 0}
+.tabs button{background:none;border:none;color:#94a3b8;font-size:14px}
+.tabs button.active{color:#fff;font-weight:bold}
+.section{display:none}
+.section.active{display:block}
+input,button{padding:10px;border-radius:10px;border:none;margin:5px 0;width:100%}
+input{background:#334155;color:#fff}
+button{background:#3b82f6;color:white;font-weight:bold}
+.product-card{background:#1e293b;padding:12px;border-radius:12px;margin-bottom:10px}
+.small{font-size:13px;color:#94a3b8}
+.fab{position:fixed;right:20px;bottom:80px;background:#22c55e;width:55px;height:55px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;color:#fff;cursor:pointer;box-shadow:0 5px 20px rgba(0,0,0,0.4)}
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;padding:20px}
+.modal-content{background:#1e293b;padding:20px;border-radius:16px;width:100%}
+.close{background:#ef4444;margin-top:10px}
+</style>
+</head>
+<body>
+
+<header>Smart Inventory</header>
+
+<div class="container">
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="section active">
+<div class="cards">
+<div class="card"><h3>Total Products</h3><p id="totalProducts">0</p></div>
+<div class="card"><h3>Low Stock</h3><p id="lowStock" class="red">0</p></div>
+<div class="card"><h3>Today Revenue</h3><p id="todayRevenue" class="green">₹0</p></div>
+<div class="card"><h3>Total Profit</h3><p id="totalProfit" class="green">₹0</p></div>
+</div>
+</div>
+
+<!-- PRODUCTS -->
+<div id="products" class="section">
+<div id="productList"></div>
+</div>
+
+<!-- SALES -->
+<div id="sales" class="section">
+<select id="saleProduct"></select>
+<input type="number" id="saleQty" placeholder="Quantity">
+<button onclick="recordSale()">Complete Sale</button>
+</div>
+
+<!-- REPORT -->
+<div id="report" class="section">
+<p class="small">Total Revenue: <span id="reportRevenue"></span></p>
+<p class="small">Total Profit: <span id="reportProfit"></span></p>
+</div>
+
+</div>
+
+<div class="fab" onclick="openModal()">+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+<div class="modal-content">
+<input id="name" placeholder="Product Name">
+<input id="buy" type="number" placeholder="Buying Price">
+<input id="sell" type="number" placeholder="Selling Price">
+<input id="stock" type="number" placeholder="Stock Quantity">
+<button onclick="addProduct()">Add Product</button>
+<button class="close" onclick="closeModal()">Close</button>
+</div>
+</div>
+
+<div class="tabs">
+<button onclick="showSection('dashboard')" class="active">Home</button>
+<button onclick="showSection('products')">Products</button>
+<button onclick="showSection('sales')">Sales</button>
+<button onclick="showSection('report')">Report</button>
+</div>
+
+<script>
+let products = JSON.parse(localStorage.getItem("products")) || [];
+let revenue = JSON.parse(localStorage.getItem("revenue")) || 0;
+let profit = JSON.parse(localStorage.getItem("profit")) || 0;
+
+function saveData(){
+localStorage.setItem("products", JSON.stringify(products));
+localStorage.setItem("revenue", JSON.stringify(revenue));
+localStorage.setItem("profit", JSON.stringify(profit));
+}
+
+function showSection(id){
+document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+event.target.classList.add("active");
+render();
+}
+
+function openModal(){document.getElementById("modal").style.display="flex"}
+function closeModal(){document.getElementById("modal").style.display="none"}
+
+function addProduct(){
+let name=document.getElementById("name").value;
+let buy=+document.getElementById("buy").value;
+let sell=+document.getElementById("sell").value;
+let stock=+document.getElementById("stock").value;
+if(!name) return;
+products.push({id:Date.now(),name,buy,sell,stock});
+saveData();
+closeModal();
+render();
+}
+
+function deleteProduct(id){
+products=products.filter(p=>p.id!==id);
+saveData();
+render();
+}
+
+function recordSale(){
+let id=document.getElementById("saleProduct").value;
+let qty=+document.getElementById("saleQty").value;
+let product=products.find(p=>p.id==id);
+if(!product||qty<=0||product.stock<qty) return alert("Invalid sale");
+product.stock-=qty;
+let saleRevenue=product.sell*qty;
+let saleProfit=(product.sell-product.buy)*qty;
+revenue+=saleRevenue;
+profit+=saleProfit;
+saveData();
+render();
+alert("Sale recorded");
+}
+
+function render(){
+document.getElementById("totalProducts").innerText=products.length;
+document.getElementById("lowStock").innerText=products.filter(p=>p.stock<5).length;
+document.getElementById("todayRevenue").innerText="₹"+revenue;
+document.getElementById("totalProfit").innerText="₹"+profit;
+
+let list=document.getElementById("productList");
+list.innerHTML="";
+products.forEach(p=>{
+list.innerHTML+=`
+<div class="product-card">
+<strong>${p.name}</strong><br>
+<span class="small">Stock: ${p.stock}</span><br>
+<span class="small">Buy: ₹${p.buy} | Sell: ₹${p.sell}</span><br>
+<button onclick="deleteProduct(${p.id})" style="background:#ef4444;margin-top:8px">Delete</button>
+</div>`;
+});
+
+let select=document.getElementById("saleProduct");
+select.innerHTML="";
+products.forEach(p=>{
+select.innerHTML+=`<option value="${p.id}">${p.name}</option>`;
+});
+
+document.getElementById("reportRevenue").innerText="₹"+revenue;
+document.getElementById("reportProfit").innerText="₹"+profit;
+}
+
+render();
+</script>
+
+</body>
+                    </html>
