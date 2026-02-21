@@ -1,4 +1,18 @@
 document.addEventListener("DOMContentLoaded", function(){
+  // ---- GET ALL ELEMENTS ONCE ----
+const name = document.getElementById("name");
+const buy = document.getElementById("buy");
+const sell = document.getElementById("sell");
+const stock = document.getElementById("stock");
+
+const productModal = document.getElementById("productModal");
+const deleteModal = document.getElementById("deleteModal");
+const modalTitle = document.getElementById("modalTitle");
+
+const totalProducts = document.getElementById("totalProducts");
+const lowStock = document.getElementById("lowStock");
+const monthRevenue = document.getElementById("monthRevenue");
+const monthProfit = document.getElementById("monthProfit");
 
 let productData = JSON.parse(localStorage.getItem("inventory_products")) || [];
 let salesHistory = JSON.parse(localStorage.getItem("inventory_sales")) || [];
