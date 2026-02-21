@@ -106,40 +106,6 @@ border:1px solid rgba(239,68,68,0.4);
 box-shadow:0 0 8px rgba(239,68,68,0.4);
 }
 
-.sales-product{
-background:#1e293b;
-padding:16px;
-border-radius:20px;
-margin-bottom:12px;
-cursor:pointer;
-transition:0.2s;
-}
-
-.sales-product.active{
-border:2px solid #22c55e;
-background:#132a1d;
-}
-
-.qty-box{
-display:flex;
-justify-content:center;
-gap:20px;
-margin-top:14px;
-align-items:center;
-}
-
-.qty-btn{
-width:45px;
-height:45px;
-border-radius:50%;
-background:#334155;
-display:flex;
-align-items:center;
-justify-content:center;
-cursor:pointer;
-font-size:20px;
-}
-
 button.primary{
 background:#3b82f6;
 color:white;
@@ -268,20 +234,10 @@ box-shadow:0 0 0 2px rgba(255,255,255,0.4);
 <h3>⚠️ Low Stock</h3>
 <p id="lowStock" class="red">0</p>
 </div>
-<div class="card">
-<h3>📅 This Month Revenue</h3>
-<p id="monthRevenue" class="green">₹0</p>
-</div>
-<div class="card">
-<h3>📈 This Month Profit</h3>
-<p id="monthProfit" class="green">₹0</p>
-</div>
 </div>
 </div>
 
 <div id="products" class="section"></div>
-<div id="sales" class="section"></div>
-<div id="report" class="section"></div>
 
 </div>
 
@@ -302,7 +258,6 @@ box-shadow:0 0 0 2px rgba(255,255,255,0.4);
 <div class="modal" id="deleteModal">
 <div class="modal-content">
 <h3>⚠ Confirm Delete</h3>
-<p style="margin-top:10px;">Are you sure?</p>
 <button class="danger" id="confirmDeleteBtn">Yes Delete</button>
 <button class="primary" onclick="closeDeleteModal()">Cancel</button>
 </div>
@@ -311,165 +266,9 @@ box-shadow:0 0 0 2px rgba(255,255,255,0.4);
 <div class="tabs">
 <button onclick="showSection('home',this)" class="active">🏠 Home</button>
 <button onclick="showSection('products',this)">📦 Products</button>
-<button onclick="showSection('sales',this)">🛒 Sales</button>
-<button onclick="showSection('report',this)">📊 Report</button>
 </div>
 
-<script>
-window.onload=function(){
-
-let products=JSON.parse(localStorage.getItem("inventory_products"))||[];
-let salesHistory=JSON.parse(localStorage.getItem("inventory_sales"))||[];
-
-let editId=null;
-let deleteId=null;
-let selected=null;
-let qty=1;
-
-function save(){
-localStorage.setItem("inventory_products",JSON.stringify(products));
-localStorage.setItem("inventory_sales",JSON.stringify(salesHistory));
-}
-
-function showSection(id,btn){
-document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-document.getElementById(id).classList.add("active");
-document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
-btn.classList.add("active");
-render();
-}
-window.showSection=showSection;
-
-document.getElementById("fabBtn").onclick=function(){
-editId=null;
-modalTitle.innerText="Add Product";
-name.value="";buy.value="";sell.value="";stock.value="";
-productModal.style.display="flex";
-};
-
-window.closeProductModal=function(){productModal.style.display="none";}
-window.closeDeleteModal=function(){deleteModal.style.display="none";}
-
-document.getElementById("saveBtn").onclick=function(){
-if(!name.value)return;
-
-if(editId){
-let p=products.find(x=>x.id===editId);
-p.name=name.value;p.buy=+buy.value;p.sell=+sell.value;p.stock=+stock.value;
-}else{
-products.push({id:Date.now(),name:name.value,buy:+buy.value,sell:+sell.value,stock:+stock.value});
-}
-save();
-closeProductModal();
-render();
-};
-
-document.getElementById("confirmDeleteBtn").onclick=function(){
-products=products.filter(p=>p.id!==deleteId);
-save();
-closeDeleteModal();
-render();
-};
-
-window.openDelete=function(id){
-deleteId=id;
-deleteModal.style.display="flex";
-};
-
-window.openEdit=function(id){
-let p=products.find(x=>x.id===id);
-editId=id;
-modalTitle.innerText="Edit Product";
-name.value=p.name;buy.value=p.buy;sell.value=p.sell;stock.value=p.stock;
-productModal.style.display="flex";
-};
-
-window.selectProduct=function(id){
-selected=products.find(p=>p.id===id);
-qty=1;
-render();
-};
-
-window.changeQty=function(n){
-qty+=n;if(qty<1)qty=1;
-render();
-};
-
-window.completeSale=function(){
-if(!selected||selected.stock<qty)return;
-selected.stock-=qty;
-salesHistory.push({
-productId:selected.id,
-revenue:selected.sell*qty,
-profit:(selected.sell-selected.buy)*qty,
-date:new Date().toISOString()
-});
-save();
-selected=null;qty=1;
-render();
-};
-
-function render(){
-totalProducts.innerText=products.length;
-lowStock.innerText=products.filter(p=>p.stock<20).length;
-
-let now=new Date();
-let monthSales=salesHistory.filter(s=>{
-let d=new Date(s.date);
-return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
-});
-
-let monthRev=monthSales.reduce((a,b)=>a+b.revenue,0);
-let monthProf=monthSales.reduce((a,b)=>a+b.profit,0);
-
-monthRevenue.innerText="₹"+monthRev;
-monthProfit.innerText="₹"+monthProf;
-
-products.innerHTML=products.map(p=>{
-let low=p.stock<20?"stock-low":"";
-return `
-<div class="product-card">
-<div class="product-header">
-<strong>📦 ${p.name}</strong>
-<div class="icon-group">
-<button class="icon-btn" onclick="openEdit(${p.id})">✏️</button>
-<button class="icon-btn" onclick="openDelete(${p.id})">🗑</button>
-</div>
-</div>
-Buy ₹${p.buy} | Sell ₹${p.sell}
-<div class="stock-badge ${low}">Stock: ${p.stock}</div>
-</div>`;
-}).join("");
-
-sales.innerHTML=products.map(p=>{
-let active=selected&&selected.id===p.id?"active":"";
-return `<div class="sales-product ${active}" onclick="selectProduct(${p.id})">
-🛒 ${p.name} (₹${p.sell}) - Stock ${p.stock}
-</div>`;
-}).join("") + (selected?`
-<div style="margin-top:12px;text-align:center;">Selected: ${selected.name}</div>
-<div class="qty-box">
-<div class="qty-btn" onclick="changeQty(-1)">−</div>
-<div>${qty}</div>
-<div class="qty-btn" onclick="changeQty(1)">+</div>
-</div>
-<button class="primary" onclick="completeSale()">Complete Sale</button>
-`:"");
-
-report.innerHTML=`
-<div class="product-card">
-<h3>This Month Revenue</h3>
-<p class="green">₹${monthRev}</p>
-</div>
-<div class="product-card">
-<h3>This Month Profit</h3>
-<p class="green">₹${monthProf}</p>
-</div>`;
-}
-
-render();
-};
-</script>
+<script src="script.js"></script>
 
 </body>
-  </html>
+</html>
