@@ -147,6 +147,27 @@ monthProfit.innerText="₹"+monthProf;
 /* PRODUCTS */
 document.getElementById("products").innerHTML =
 productData.map(p=>{
+let low = p.stock < 20 ? "stock-low" : "";
+return `
+<div class="product-card">
+    <div class="product-top">
+        <div class="product-info">
+            <div class="product-name">📦 ${p.name}</div>
+            <div class="price-line">
+                Buy ₹${p.buy} | Sell ₹${p.sell}
+            </div>
+        </div>
+        <div class="action-icons">
+            <button class="icon-btn edit" onclick="openEdit(${p.id})">✏️</button>
+            <button class="icon-btn delete" onclick="openDelete(${p.id})">🗑</button>
+        </div>
+    </div>
+    <div class="stock-badge ${low}">
+        Stock: ${p.stock}
+    </div>
+</div>
+`;
+}).join("");
 let low=p.stock<20?"stock-low":"";
 return `
 <div class="product-card">
