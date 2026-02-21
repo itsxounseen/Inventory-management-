@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Inventory</title>
+<title>Smart Inventory Pro</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui;}
@@ -22,7 +22,7 @@ font-weight:700;
 
 .container{
 padding:18px;
-padding-bottom:140px;
+padding-bottom:150px;
 }
 
 .section{display:none;}
@@ -39,7 +39,7 @@ margin-bottom:20px;
 background:#1e293b;
 padding:18px;
 border-radius:20px;
-box-shadow:0 8px 20px rgba(0,0,0,0.4);
+box-shadow:0 8px 25px rgba(0,0,0,0.4);
 }
 
 .card h3{
@@ -49,7 +49,7 @@ margin-bottom:6px;
 }
 
 .card p{
-font-size:20px;
+font-size:22px;
 font-weight:bold;
 }
 
@@ -58,43 +58,19 @@ font-weight:bold;
 
 .product-card{
 background:#1e293b;
-padding:18px;
+padding:16px;
 border-radius:20px;
-margin-bottom:15px;
-box-shadow:0 8px 20px rgba(0,0,0,0.4);
-}
-
-.product-header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:6px;
-}
-
-.action-icons{
-display:flex;
-gap:12px;
-}
-
-.icon-btn{
-background:none;
-border:none;
-color:#cbd5e1;
-font-size:18px;
-cursor:pointer;
-}
-
-.icon-btn:hover{
-color:white;
+margin-bottom:14px;
+box-shadow:0 6px 18px rgba(0,0,0,0.4);
 }
 
 .stock-badge{
 display:inline-block;
-margin-top:8px;
+margin-top:10px;
 padding:6px 14px;
 border-radius:20px;
-font-size:13px;
 font-weight:600;
+font-size:13px;
 }
 
 .stock-good{
@@ -107,46 +83,56 @@ border:1px solid rgba(34,197,94,0.4);
 background:rgba(239,68,68,0.15);
 color:#ef4444;
 border:1px solid rgba(239,68,68,0.4);
-box-shadow:0 0 8px rgba(239,68,68,0.4);
+box-shadow:0 0 10px rgba(239,68,68,0.4);
 }
 
 .sales-product{
 background:#1e293b;
-padding:15px;
-border-radius:16px;
+padding:16px;
+border-radius:18px;
 margin-bottom:12px;
 cursor:pointer;
+transition:0.2s;
 }
 
 .sales-product.active{
 border:2px solid #22c55e;
 background:#132a1d;
+box-shadow:0 0 15px rgba(34,197,94,0.6);
+}
+
+.selected-label{
+margin-top:6px;
+font-size:12px;
+color:#22c55e;
 }
 
 .qty-box{
 display:flex;
 justify-content:center;
+align-items:center;
 gap:15px;
-margin-top:12px;
+margin-top:15px;
 }
 
 .qty-btn{
-width:40px;
-height:40px;
+width:45px;
+height:45px;
 border-radius:50%;
 background:#334155;
 display:flex;
 align-items:center;
 justify-content:center;
+font-size:20px;
 cursor:pointer;
 }
 
 button{
 width:100%;
-padding:10px;
+padding:12px;
 border:none;
-border-radius:12px;
-margin-top:10px;
+border-radius:14px;
+margin-top:12px;
 font-weight:bold;
 cursor:pointer;
 }
@@ -164,6 +150,19 @@ color:white;
 margin-top:10px;
 }
 
+.big-report{
+background:#1e293b;
+padding:22px;
+border-radius:22px;
+margin-bottom:16px;
+text-align:center;
+}
+
+.big-report h2{
+margin-top:8px;
+font-size:26px;
+}
+
 .modal{
 position:fixed;
 top:0;
@@ -175,32 +174,32 @@ display:none;
 align-items:center;
 justify-content:center;
 padding:20px;
-z-index:100;
 }
 
 .modal-content{
 background:#1e293b;
 padding:20px;
-border-radius:20px;
+border-radius:22px;
 width:100%;
 }
 
 .fab{
 position:fixed;
-bottom:85px;
+bottom:90px;
 left:50%;
 transform:translateX(-50%);
 background:#22c55e;
-width:65px;
-height:65px;
+width:70px;
+height:70px;
 border-radius:50%;
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:28px;
-box-shadow:0 10px 25px rgba(0,0,0,0.5);
+font-size:30px;
+box-shadow:0 12px 30px rgba(0,0,0,0.6);
 cursor:pointer;
-border:5px solid #0f172a;
+z-index:20;
+border:6px solid #0f172a;
 }
 
 .tabs{
@@ -216,6 +215,7 @@ justify-content:space-around;
 padding:14px;
 border-radius:35px;
 box-shadow:0 10px 30px rgba(0,0,0,0.6);
+z-index:10;
 }
 
 .tabs button{
@@ -226,7 +226,7 @@ font-size:13px;
 display:flex;
 flex-direction:column;
 align-items:center;
-gap:4px;
+gap:5px;
 }
 
 .tabs button.active{
@@ -241,24 +241,12 @@ color:#22c55e;
 
 <div class="container">
 
-<div id="home" class="section active">
+<div id="dashboard" class="section active">
 <div class="cards">
-<div class="card">
-<h3>📦 Products</h3>
-<p id="totalProducts">0</p>
-</div>
-<div class="card">
-<h3>⚠️ Low Stock</h3>
-<p id="lowStock" class="red">0</p>
-</div>
-<div class="card">
-<h3>📅 This Month Revenue</h3>
-<p id="monthRevenue" class="green">₹0</p>
-</div>
-<div class="card">
-<h3>📈 This Month Profit</h3>
-<p id="monthProfit" class="green">₹0</p>
-</div>
+<div class="card"><h3>📦 Products</h3><p id="totalProducts">0</p></div>
+<div class="card"><h3>⚠️ Low Stock</h3><p id="lowStock" class="red">0</p></div>
+<div class="card"><h3>📅 This Month Revenue</h3><p id="monthRevenue" class="green">₹0</p></div>
+<div class="card"><h3>📈 This Month Profit</h3><p id="monthProfit" class="green">₹0</p></div>
 </div>
 </div>
 
@@ -268,33 +256,22 @@ color:#22c55e;
 
 </div>
 
-<div class="fab" onclick="openProductModal()">＋</div>
+<div class="fab" onclick="openModal()">＋</div>
 
-<!-- ADD/EDIT MODAL -->
-<div class="modal" id="productModal">
+<div class="modal" id="modal">
 <div class="modal-content">
-<h3 id="modalTitle">Add Product</h3>
+<h3>➕ Add Product</h3>
 <input id="name" placeholder="Product Name">
 <input id="buy" type="number" placeholder="Buying Price">
 <input id="sell" type="number" placeholder="Selling Price">
 <input id="stock" type="number" placeholder="Stock Quantity">
-<button class="primary" onclick="saveProduct()">Save</button>
-<button class="danger" onclick="closeProductModal()">Cancel</button>
-</div>
-</div>
-
-<!-- DELETE CONFIRM -->
-<div class="modal" id="deleteModal">
-<div class="modal-content">
-<h3>⚠ Confirm Delete</h3>
-<p style="margin-top:10px;">Are you sure?</p>
-<button class="danger" onclick="confirmDelete()">Yes Delete</button>
-<button class="primary" onclick="closeDeleteModal()">Cancel</button>
+<button class="primary" onclick="addProduct()">Add</button>
+<button class="danger" onclick="closeModal()">Cancel</button>
 </div>
 </div>
 
 <div class="tabs">
-<button onclick="showSection('home',this)" class="active">🏠 Home</button>
+<button onclick="showSection('dashboard',this)" class="active">🏠 Home</button>
 <button onclick="showSection('products',this)">📦 Products</button>
 <button onclick="showSection('sales',this)">🛒 Sales</button>
 <button onclick="showSection('report',this)">📊 Report</button>
@@ -303,10 +280,6 @@ color:#22c55e;
 <script>
 let products=JSON.parse(localStorage.getItem("products"))||[];
 let salesHistory=JSON.parse(localStorage.getItem("salesHistory"))||[];
-let editId=null;
-let deleteId=null;
-let selected=null;
-let qty=1;
 
 function save(){
 localStorage.setItem("products",JSON.stringify(products));
@@ -321,38 +294,11 @@ btn.classList.add("active");
 render();
 }
 
-function openProductModal(id=null){
-if(id){
-let p=products.find(x=>x.id===id);
-editId=id;
-modalTitle.innerText="Edit Product";
-name.value=p.name;
-buy.value=p.buy;
-sell.value=p.sell;
-stock.value=p.stock;
-}else{
-editId=null;
-modalTitle.innerText="Add Product";
-name.value="";
-buy.value="";
-sell.value="";
-stock.value="";
-}
-productModal.style.display="flex";
-}
+function openModal(){modal.style.display="flex";}
+function closeModal(){modal.style.display="none";}
 
-function closeProductModal(){productModal.style.display="none";}
-
-function saveProduct(){
+function addProduct(){
 if(!name.value)return;
-
-if(editId){
-let p=products.find(x=>x.id===editId);
-p.name=name.value;
-p.buy=+buy.value;
-p.sell=+sell.value;
-p.stock=+stock.value;
-}else{
 products.push({
 id:Date.now(),
 name:name.value,
@@ -360,25 +306,19 @@ buy:+buy.value,
 sell:+sell.value,
 stock:+stock.value
 });
-}
 save();
-closeProductModal();
+closeModal();
 render();
 }
 
-function openDeleteModal(id){
-deleteId=id;
-deleteModal.style.display="flex";
-}
-
-function closeDeleteModal(){deleteModal.style.display="none";}
-
-function confirmDelete(){
-products=products.filter(p=>p.id!==deleteId);
+function deleteProduct(id){
+products=products.filter(p=>p.id!==id);
 save();
-closeDeleteModal();
 render();
 }
+
+let selected=null;
+let qty=1;
 
 function selectProduct(id){
 selected=products.find(p=>p.id===id);
@@ -393,7 +333,8 @@ render();
 }
 
 function completeSale(){
-if(!selected||selected.stock<qty)return;
+if(!selected||selected.stock<qty)return alert("Invalid sale");
+
 selected.stock-=qty;
 
 salesHistory.push({
@@ -415,63 +356,79 @@ totalProducts.innerText=products.length;
 lowStock.innerText=products.filter(p=>p.stock<20).length;
 
 let now=new Date();
+let m=now.getMonth();
+let y=now.getFullYear();
+
 let monthSales=salesHistory.filter(s=>{
 let d=new Date(s.date);
-return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+return d.getMonth()===m&&d.getFullYear()===y;
 });
 
-monthRevenue.innerText="₹"+monthSales.reduce((sum,s)=>sum+s.revenue,0);
-monthProfit.innerText="₹"+monthSales.reduce((sum,s)=>sum+s.profit,0);
+let monthRevenue=monthSales.reduce((sum,s)=>sum+s.revenue,0);
+let monthProfit=monthSales.reduce((sum,s)=>sum+s.profit,0);
+
+monthRevenueEl=document.getElementById("monthRevenue");
+monthProfitEl=document.getElementById("monthProfit");
+monthRevenueEl.innerText="₹"+monthRevenue;
+monthProfitEl.innerText="₹"+monthProfit;
 
 let pHTML="";
 products.forEach(p=>{
 let stockClass=p.stock<20?"stock-low":"stock-good";
 pHTML+=`
 <div class="product-card">
-<div class="product-header">
-<strong>📦 ${p.name}</strong>
-<div class="action-icons">
-<button class="icon-btn" onclick="openProductModal(${p.id})">✏️</button>
-<button class="icon-btn" onclick="openDeleteModal(${p.id})">🗑</button>
+<strong>📦 ${p.name}</strong><br>
+Buy ₹${p.buy} | Sell ₹${p.sell}<br>
+<div class="stock-badge ${stockClass}">
+Stock: ${p.stock}
 </div>
-</div>
-Buy ₹${p.buy} | Sell ₹${p.sell}
-<div class="stock-badge ${stockClass}">Stock: ${p.stock}</div>
+<button class="danger" onclick="deleteProduct(${p.id})">Delete</button>
 </div>`;
 });
-products.innerHTML=pHTML;
+productsDiv.innerHTML=pHTML;
 
 let sHTML="";
 products.forEach(p=>{
-let active=selected&&selected.id===p.id?"active":"";
+let isSelected=selected&&selected.id===p.id;
 sHTML+=`
-<div class="sales-product ${active}" onclick="selectProduct(${p.id})">
-🛒 ${p.name} (₹${p.sell}) - Stock ${p.stock}
+<div class="sales-product ${isSelected?'active':''}" onclick="selectProduct(${p.id})">
+🛒 ${p.name}<br>
+<small>Stock ${p.stock} | ₹${p.sell}</small>
+${isSelected?'<div class="selected-label">✓ Selected</div>':''}
 </div>`;
 });
+
 if(selected){
 sHTML+=`
-<div style="margin-top:10px;text-align:center;">Selected: ${selected.name}</div>
+<div style="text-align:center;margin-top:10px;">
+Selected: <strong>${selected.name}</strong>
+</div>
 <div class="qty-box">
 <div class="qty-btn" onclick="changeQty(-1)">−</div>
 <div>${qty}</div>
 <div class="qty-btn" onclick="changeQty(1)">+</div>
 </div>
-<button class="primary" onclick="completeSale()">Complete Sale</button>`;
+<button class="primary" onclick="completeSale()">Complete Sale</button>
+`;
 }
-sales.innerHTML=sHTML;
 
-report.innerHTML=`
-<div class="card">
-<h3>This Month Revenue</h3>
-<p class="green">₹${monthSales.reduce((sum,s)=>sum+s.revenue,0)}</p>
+salesDiv.innerHTML=sHTML;
+
+reportDiv.innerHTML=`
+<div class="big-report">
+📅 This Month Revenue
+<h2 class="green">₹${monthRevenue}</h2>
 </div>
-<div class="card">
-<h3>This Month Profit</h3>
-<p class="green">₹${monthSales.reduce((sum,s)=>sum+s.profit,0)}</p>
+<div class="big-report">
+📈 This Month Profit
+<h2 class="green">₹${monthProfit}</h2>
 </div>
 `;
 }
+
+let productsDiv=document.getElementById("products");
+let salesDiv=document.getElementById("sales");
+let reportDiv=document.getElementById("report");
 
 render();
 </script>
