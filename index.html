@@ -61,6 +61,29 @@ background:#1e293b;
 padding:16px;
 border-radius:20px;
 margin-bottom:14px;
+box-shadow:0 6px 18px rgba(0,0,0,0.4);
+}
+
+.stock-badge{
+display:inline-block;
+margin-top:10px;
+padding:6px 14px;
+border-radius:20px;
+font-weight:600;
+font-size:13px;
+}
+
+.stock-good{
+background:rgba(34,197,94,0.15);
+color:#22c55e;
+border:1px solid rgba(34,197,94,0.4);
+}
+
+.stock-low{
+background:rgba(239,68,68,0.15);
+color:#ef4444;
+border:1px solid rgba(239,68,68,0.4);
+box-shadow:0 0 10px rgba(239,68,68,0.4);
 }
 
 .sales-product{
@@ -255,8 +278,8 @@ color:#22c55e;
 </div>
 
 <script>
-let products = JSON.parse(localStorage.getItem("products")) || [];
-let salesHistory = JSON.parse(localStorage.getItem("salesHistory")) || [];
+let products=JSON.parse(localStorage.getItem("products"))||[];
+let salesHistory=JSON.parse(localStorage.getItem("salesHistory"))||[];
 
 function save(){
 localStorage.setItem("products",JSON.stringify(products));
@@ -271,16 +294,18 @@ btn.classList.add("active");
 render();
 }
 
-function openModal(){document.getElementById("modal").style.display="flex";}
-function closeModal(){document.getElementById("modal").style.display="none";}
+function openModal(){modal.style.display="flex";}
+function closeModal(){modal.style.display="none";}
 
 function addProduct(){
-let name=nameInput.value;
-let buy=+buyInput.value;
-let sell=+sellInput.value;
-let stock=+stockInput.value;
-if(!name)return;
-products.push({id:Date.now(),name,buy,sell,stock});
+if(!name.value)return;
+products.push({
+id:Date.now(),
+name:name.value,
+buy:+buy.value,
+sell:+sell.value,
+stock:+stock.value
+});
 save();
 closeModal();
 render();
@@ -295,7 +320,7 @@ render();
 let selected=null;
 let qty=1;
 
-function selectProduct(id,el){
+function selectProduct(id){
 selected=products.find(p=>p.id===id);
 qty=1;
 render();
@@ -309,15 +334,13 @@ render();
 
 function completeSale(){
 if(!selected||selected.stock<qty)return alert("Invalid sale");
-selected.stock-=qty;
 
-let saleRevenue=selected.sell*qty;
-let saleProfit=(selected.sell-selected.buy)*qty;
+selected.stock-=qty;
 
 salesHistory.push({
 productId:selected.id,
-revenue:saleRevenue,
-profit:saleProfit,
+revenue:selected.sell*qty,
+profit:(selected.sell-selected.buy)*qty,
 date:new Date().toISOString()
 });
 
@@ -329,8 +352,8 @@ render();
 
 function render(){
 
-document.getElementById("totalProducts").innerText=products.length;
-document.getElementById("lowStock").innerText=products.filter(p=>p.stock<5).length;
+totalProducts.innerText=products.length;
+lowStock.innerText=products.filter(p=>p.stock<20).length;
 
 let now=new Date();
 let m=now.getMonth();
@@ -338,22 +361,27 @@ let y=now.getFullYear();
 
 let monthSales=salesHistory.filter(s=>{
 let d=new Date(s.date);
-return d.getMonth()===m && d.getFullYear()===y;
+return d.getMonth()===m&&d.getFullYear()===y;
 });
 
 let monthRevenue=monthSales.reduce((sum,s)=>sum+s.revenue,0);
 let monthProfit=monthSales.reduce((sum,s)=>sum+s.profit,0);
 
-document.getElementById("monthRevenue").innerText="₹"+monthRevenue;
-document.getElementById("monthProfit").innerText="₹"+monthProfit;
+monthRevenueEl=document.getElementById("monthRevenue");
+monthProfitEl=document.getElementById("monthProfit");
+monthRevenueEl.innerText="₹"+monthRevenue;
+monthProfitEl.innerText="₹"+monthProfit;
 
 let pHTML="";
 products.forEach(p=>{
+let stockClass=p.stock<20?"stock-low":"stock-good";
 pHTML+=`
 <div class="product-card">
 <strong>📦 ${p.name}</strong><br>
 Buy ₹${p.buy} | Sell ₹${p.sell}<br>
+<div class="stock-badge ${stockClass}">
 Stock: ${p.stock}
+</div>
 <button class="danger" onclick="deleteProduct(${p.id})">Delete</button>
 </div>`;
 });
@@ -363,7 +391,7 @@ let sHTML="";
 products.forEach(p=>{
 let isSelected=selected&&selected.id===p.id;
 sHTML+=`
-<div class="sales-product ${isSelected?'active':''}" onclick="selectProduct(${p.id},this)">
+<div class="sales-product ${isSelected?'active':''}" onclick="selectProduct(${p.id})">
 🛒 ${p.name}<br>
 <small>Stock ${p.stock} | ₹${p.sell}</small>
 ${isSelected?'<div class="selected-label">✓ Selected</div>':''}
@@ -387,15 +415,16 @@ Selected: <strong>${selected.name}</strong>
 salesDiv.innerHTML=sHTML;
 
 reportDiv.innerHTML=`
-<div class="big-report">📅 This Month Revenue<h2 class="green">₹${monthRevenue}</h2></div>
-<div class="big-report">📈 This Month Profit<h2 class="green">₹${monthProfit}</h2></div>
+<div class="big-report">
+📅 This Month Revenue
+<h2 class="green">₹${monthRevenue}</h2>
+</div>
+<div class="big-report">
+📈 This Month Profit
+<h2 class="green">₹${monthProfit}</h2>
+</div>
 `;
 }
-
-let nameInput=document.getElementById("name");
-let buyInput=document.getElementById("buy");
-let sellInput=document.getElementById("sell");
-let stockInput=document.getElementById("stock");
 
 let productsDiv=document.getElementById("products");
 let salesDiv=document.getElementById("sales");
