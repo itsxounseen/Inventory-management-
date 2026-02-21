@@ -5,100 +5,397 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Smart Inventory Pro</title>
 
-<!-- PASTE YOUR FULL NEW CSS INSIDE THIS STYLE TAG -->
 <style>
-/* ⬇️ PASTE COMPLETE NEW CSS HERE ⬇️ */
-</style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto;
+}
 
+body{
+background:linear-gradient(180deg,#0f172a,#0b1220);
+color:#fff;
+min-height:100vh;
+}
+
+header{
+padding:22px;
+font-size:22px;
+font-weight:700;
+text-align:center;
+}
+
+.container{
+padding:18px;
+padding-bottom:150px;
+}
+
+.section{display:none;}
+.section.active{display:block;}
+
+.cards{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:14px;
+margin-bottom:20px;
+}
+
+.card{
+background:#1e293b;
+padding:18px;
+border-radius:20px;
+box-shadow:0 8px 25px rgba(0,0,0,0.4);
+}
+
+.card h3{
+font-size:13px;
+color:#94a3b8;
+margin-bottom:6px;
+}
+
+.card p{
+font-size:22px;
+font-weight:bold;
+}
+
+.green{color:#22c55e;}
+.red{color:#ef4444;}
+
+.product-card{
+background:#1e293b;
+padding:16px;
+border-radius:20px;
+margin-bottom:14px;
+box-shadow:0 6px 18px rgba(0,0,0,0.4);
+}
+
+.product-title{
+font-size:17px;
+font-weight:600;
+margin-bottom:6px;
+}
+
+.stock{
+font-size:13px;
+margin-top:6px;
+}
+
+.low{color:#ef4444;}
+.good{color:#22c55e;}
+
+.sales-product{
+background:#1e293b;
+padding:14px;
+border-radius:18px;
+margin-bottom:12px;
+cursor:pointer;
+transition:0.2s;
+}
+
+.sales-product.active{
+border:2px solid #22c55e;
+background:#132a1d;
+}
+
+.qty-box{
+display:flex;
+justify-content:center;
+align-items:center;
+gap:16px;
+margin-top:15px;
+}
+
+.qty-btn{
+width:45px;
+height:45px;
+border-radius:50%;
+background:#334155;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:22px;
+cursor:pointer;
+}
+
+.big-report{
+background:#1e293b;
+padding:22px;
+border-radius:22px;
+margin-bottom:16px;
+text-align:center;
+box-shadow:0 8px 20px rgba(0,0,0,0.4);
+}
+
+.big-report h2{
+margin-top:8px;
+font-size:26px;
+}
+
+button{
+width:100%;
+padding:12px;
+border:none;
+border-radius:14px;
+margin-top:12px;
+font-weight:bold;
+cursor:pointer;
+}
+
+.primary{background:#3b82f6;color:#fff;}
+.danger{background:#ef4444;color:#fff;}
+
+input{
+width:100%;
+padding:12px;
+border-radius:12px;
+border:none;
+background:#334155;
+color:#fff;
+margin-top:10px;
+}
+
+.modal{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.6);
+display:none;
+align-items:center;
+justify-content:center;
+padding:20px;
+}
+
+.modal-content{
+background:#1e293b;
+padding:20px;
+border-radius:22px;
+width:100%;
+}
+
+.fab{
+position:fixed;
+bottom:90px;
+left:50%;
+transform:translateX(-50%);
+background:#22c55e;
+width:70px;
+height:70px;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:30px;
+box-shadow:0 12px 30px rgba(0,0,0,0.6);
+cursor:pointer;
+z-index:20;
+border:6px solid #0f172a;
+}
+
+.tabs{
+position:fixed;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+width:92%;
+max-width:430px;
+background:#1e293b;
+display:flex;
+justify-content:space-around;
+padding:14px;
+border-radius:35px;
+box-shadow:0 10px 30px rgba(0,0,0,0.6);
+z-index:10;
+}
+
+.tabs button{
+background:none;
+border:none;
+color:#94a3b8;
+font-size:13px;
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:5px;
+}
+
+.tabs button.active{
+color:#22c55e;
+}
+</style>
 </head>
+
 <body>
 
 <header>📊 Smart Inventory</header>
 
 <div class="container">
 
-    <!-- DASHBOARD -->
-    <div id="dashboard" class="section active">
-        <div class="cards">
-            <div class="card">
-                <h3>📦 Total Products</h3>
-                <p id="totalProducts">0</p>
-            </div>
-            <div class="card">
-                <h3>⚠️ Low Stock</h3>
-                <p id="lowStock" class="red">0</p>
-            </div>
-            <div class="card">
-                <h3>💰 Revenue</h3>
-                <p id="totalRevenue" class="green">₹0</p>
-            </div>
-            <div class="card">
-                <h3>📈 Profit</h3>
-                <p id="totalProfit" class="green">₹0</p>
-            </div>
-        </div>
-    </div>
+<div id="dashboard" class="section active">
+<div class="cards">
+<div class="card">
+<h3>📦 Products</h3>
+<p id="totalProducts">0</p>
+</div>
+<div class="card">
+<h3>⚠️ Low Stock</h3>
+<p id="lowStock" class="red">0</p>
+</div>
+<div class="card">
+<h3>💰 Revenue</h3>
+<p id="totalRevenue" class="green">₹0</p>
+</div>
+<div class="card">
+<h3>📈 Profit</h3>
+<p id="totalProfit" class="green">₹0</p>
+</div>
+</div>
+</div>
 
-    <!-- PRODUCTS SECTION -->
-    <div id="products" class="section">
-        <!-- JS will inject product cards here -->
-    </div>
-
-    <!-- SALES SECTION -->
-    <div id="sales" class="section">
-        <!-- JS will inject sales cards here -->
-    </div>
-
-    <!-- REPORT SECTION -->
-    <div id="report" class="section">
-        <!-- JS will inject report cards here -->
-    </div>
+<div id="products" class="section"></div>
+<div id="sales" class="section"></div>
+<div id="report" class="section"></div>
 
 </div>
 
-<!-- FLOATING ADD BUTTON -->
 <div class="fab" onclick="openModal()">＋</div>
 
-<!-- ADD PRODUCT MODAL -->
 <div class="modal" id="modal">
-    <div class="modal-content">
-        <h3>➕ Add Product</h3>
-        <input id="name" placeholder="Product Name">
-        <input id="buy" type="number" placeholder="Buying Price">
-        <input id="sell" type="number" placeholder="Selling Price">
-        <input id="stock" type="number" placeholder="Stock Quantity">
-        <button class="primary" onclick="addProduct()">Add Product</button>
-        <button class="danger" onclick="closeModal()">Cancel</button>
-    </div>
+<div class="modal-content">
+<h3>➕ Add Product</h3>
+<input id="name" placeholder="Product Name">
+<input id="buy" type="number" placeholder="Buying Price">
+<input id="sell" type="number" placeholder="Selling Price">
+<input id="stock" type="number" placeholder="Stock Quantity">
+<button class="primary" onclick="addProduct()">Add</button>
+<button class="danger" onclick="closeModal()">Cancel</button>
+</div>
 </div>
 
-<!-- FLOATING NAVIGATION -->
 <div class="tabs">
-    <button onclick="showSection('dashboard',this)" class="active">
-        🏠
-        <span>Home</span>
-    </button>
-
-    <button onclick="showSection('products',this)">
-        📦
-        <span>Products</span>
-    </button>
-
-    <button onclick="showSection('sales',this)">
-        🛒
-        <span>Sales</span>
-    </button>
-
-    <button onclick="showSection('report',this)">
-        📊
-        <span>Report</span>
-    </button>
+<button onclick="showSection('dashboard',this)" class="active">🏠 Home</button>
+<button onclick="showSection('products',this)">📦 Products</button>
+<button onclick="showSection('sales',this)">🛒 Sales</button>
+<button onclick="showSection('report',this)">📊 Report</button>
 </div>
 
-<!-- YOUR EXISTING SCRIPT -->
 <script>
-/* Keep your existing JS logic here */
-/* If needed I can give you a fresh optimized version */
+let products=JSON.parse(localStorage.getItem("products"))||[];
+let revenue=JSON.parse(localStorage.getItem("revenue"))||0;
+let profit=JSON.parse(localStorage.getItem("profit"))||0;
+
+function save(){
+localStorage.setItem("products",JSON.stringify(products));
+localStorage.setItem("revenue",JSON.stringify(revenue));
+localStorage.setItem("profit",JSON.stringify(profit));
+}
+
+function showSection(id,btn){
+document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+btn.classList.add("active");
+render();
+}
+
+function openModal(){document.getElementById("modal").style.display="flex";}
+function closeModal(){document.getElementById("modal").style.display="none";}
+
+function addProduct(){
+let name=document.getElementById("name").value;
+let buy=+document.getElementById("buy").value;
+let sell=+document.getElementById("sell").value;
+let stock=+document.getElementById("stock").value;
+if(!name)return;
+products.push({id:Date.now(),name,buy,sell,stock});
+save();
+closeModal();
+render();
+}
+
+function deleteProduct(id){
+products=products.filter(p=>p.id!==id);
+save();
+render();
+}
+
+let selected=null;
+let qty=1;
+
+function selectProduct(id,el){
+selected=products.find(p=>p.id===id);
+qty=1;
+document.querySelectorAll(".sales-product").forEach(x=>x.classList.remove("active"));
+el.classList.add("active");
+render();
+}
+
+function changeQty(n){
+qty+=n;
+if(qty<1)qty=1;
+render();
+}
+
+function completeSale(){
+if(!selected||selected.stock<qty)return alert("Invalid sale");
+selected.stock-=qty;
+revenue+=selected.sell*qty;
+profit+=(selected.sell-selected.buy)*qty;
+save();
+selected=null;
+qty=1;
+render();
+}
+
+function render(){
+document.getElementById("totalProducts").innerText=products.length;
+document.getElementById("lowStock").innerText=products.filter(p=>p.stock<5).length;
+document.getElementById("totalRevenue").innerText="₹"+revenue;
+document.getElementById("totalProfit").innerText="₹"+profit;
+
+let pHTML="";
+products.forEach(p=>{
+let status=p.stock<5?"low":"good";
+pHTML+=`
+<div class="product-card">
+<div class="product-title">📦 ${p.name}</div>
+<div>Buy ₹${p.buy} | Sell ₹${p.sell}</div>
+<div class="stock ${status}">Stock: ${p.stock}</div>
+<button class="danger" onclick="deleteProduct(${p.id})">Delete</button>
+</div>`;
+});
+document.getElementById("products").innerHTML=pHTML;
+
+let sHTML="";
+products.forEach(p=>{
+sHTML+=`
+<div class="sales-product" onclick="selectProduct(${p.id},this)">
+🛒 ${p.name}<br>
+<small>Stock ${p.stock} | ₹${p.sell}</small>
+</div>`;
+});
+if(selected){
+sHTML+=`
+<div class="qty-box">
+<div class="qty-btn" onclick="changeQty(-1)">−</div>
+<div>${qty}</div>
+<div class="qty-btn" onclick="changeQty(1)">+</div>
+</div>
+<button class="primary" onclick="completeSale()">Complete Sale</button>`;
+}
+document.getElementById("sales").innerHTML=sHTML;
+
+let stockValue=products.reduce((sum,p)=>sum+(p.buy*p.stock),0);
+document.getElementById("report").innerHTML=`
+<div class="big-report">💰 Revenue<h2 class="green">₹${revenue}</h2></div>
+<div class="big-report">📈 Profit<h2 class="green">₹${profit}</h2></div>
+<div class="big-report">📦 Stock Value<h2>₹${stockValue}</h2></div>
+<div class="big-report">⚠️ Low Stock<h2 class="red">${products.filter(p=>p.stock<5).length}</h2></div>`;
+}
+
+render();
 </script>
 
 </body>
