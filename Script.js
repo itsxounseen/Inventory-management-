@@ -1,108 +1,144 @@
-let products = JSON.parse(localStorage.getItem("products")) || [];
-let revenue = JSON.parse(localStorage.getItem("revenue")) || 0;
-let profit = JSON.parse(localStorage.getItem("profit")) || 0;
+document.addEventListener("DOMContentLoaded", function () {
 
-function saveData(){
-localStorage.setItem("products", JSON.stringify(products));
-localStorage.setItem("revenue", JSON.stringify(revenue));
-localStorage.setItem("profit", JSON.stringify(profit));
+let products = JSON.parse(localStorage.getItem("inventory_products")) || [];
+let sales = JSON.parse(localStorage.getItem("inventory_sales")) || [];
+
+let editId = null;
+let deleteId = null;
+
+/* ---------- SAVE ---------- */
+function saveData() {
+    localStorage.setItem("inventory_products", JSON.stringify(products));
+    localStorage.setItem("inventory_sales", JSON.stringify(sales));
 }
 
-function showSection(id,btn){
-document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-document.getElementById(id).classList.add("active");
+/* ---------- OPEN ADD MODAL ---------- */
+const fabBtn = document.getElementById("fabBtn");
+if (fabBtn) {
+    fabBtn.addEventListener("click", function () {
+        editId = null;
+        document.getElementById("modalTitle").innerText = "Add Product";
+        document.getElementById("name").value = "";
+        document.getElementById("buy").value = "";
+        document.getElementById("sell").value = "";
+        document.getElementById("stock").value = "";
+        document.getElementById("productModal").style.display = "flex";
+    });
+}
 
-document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
-btn.classList.add("active");
+/* ---------- CLOSE MODALS ---------- */
+window.closeProductModal = function () {
+    document.getElementById("productModal").style.display = "none";
+};
 
+window.closeDeleteModal = function () {
+    document.getElementById("deleteModal").style.display = "none";
+};
+
+/* ---------- SAVE PRODUCT ---------- */
+const saveBtn = document.getElementById("saveBtn");
+if (saveBtn) {
+    saveBtn.addEventListener("click", function () {
+
+        const name = document.getElementById("name").value.trim();
+        const buy = parseFloat(document.getElementById("buy").value) || 0;
+        const sell = parseFloat(document.getElementById("sell").value) || 0;
+        const stock = parseInt(document.getElementById("stock").value) || 0;
+
+        if (!name) return;
+
+        if (editId) {
+            let product = products.find(p => p.id === editId);
+            if (product) {
+                product.name = name;
+                product.buy = buy;
+                product.sell = sell;
+                product.stock = stock;
+            }
+        } else {
+            products.push({
+                id: Date.now(),
+                name,
+                buy,
+                sell,
+                stock
+            });
+        }
+
+        saveData();
+        closeProductModal();
+        render();
+    });
+}
+
+/* ---------- EDIT ---------- */
+window.openEdit = function (id) {
+    const product = products.find(p => p.id === id);
+    if (!product) return;
+
+    editId = id;
+
+    document.getElementById("modalTitle").innerText = "Edit Product";
+    document.getElementById("name").value = product.name;
+    document.getElementById("buy").value = product.buy;
+    document.getElementById("sell").value = product.sell;
+    document.getElementById("stock").value = product.stock;
+
+    document.getElementById("productModal").style.display = "flex";
+};
+
+/* ---------- DELETE ---------- */
+window.openDelete = function (id) {
+    deleteId = id;
+    document.getElementById("deleteModal").style.display = "flex";
+};
+
+const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+if (confirmDeleteBtn) {
+    confirmDeleteBtn.addEventListener("click", function () {
+        products = products.filter(p => p.id !== deleteId);
+        saveData();
+        closeDeleteModal();
+        render();
+    });
+}
+
+/* ---------- RENDER ---------- */
+function render() {
+
+    const list = document.getElementById("products");
+    if (!list) return;
+
+    list.innerHTML = "";
+
+    products.forEach(p => {
+        const stockClass = p.stock < 20 ? "stock-low" : "";
+
+        list.innerHTML += `
+        <div class="product-card">
+            <div class="product-header">
+                <strong>📦 ${p.name}</strong>
+                <div class="icon-group">
+                    <button class="icon-btn" onclick="openEdit(${p.id})">✏️</button>
+                    <button class="icon-btn" onclick="openDelete(${p.id})">🗑</button>
+                </div>
+            </div>
+            Buy ₹${p.buy} | Sell ₹${p.sell}
+            <div class="stock-badge ${stockClass}">
+                Stock: ${p.stock}
+            </div>
+        </div>
+        `;
+    });
+
+    const totalEl = document.getElementById("totalProducts");
+    const lowEl = document.getElementById("lowStock");
+
+    if (totalEl) totalEl.innerText = products.length;
+    if (lowEl) lowEl.innerText = products.filter(p => p.stock < 20).length;
+}
+
+/* ---------- INIT ---------- */
 render();
-}
 
-function openModal(){
-document.getElementById("modal").style.display="flex";
-}
-
-function closeModal(){
-document.getElementById("modal").style.display="none";
-}
-
-function addProduct(){
-let name=document.getElementById("name").value;
-let buy=+document.getElementById("buy").value;
-let sell=+document.getElementById("sell").value;
-let stock=+document.getElementById("stock").value;
-
-if(!name) return;
-
-products.push({
-id:Date.now(),
-name,
-buy,
-sell,
-stock
 });
-
-saveData();
-closeModal();
-render();
-}
-
-function deleteProduct(id){
-products=products.filter(p=>p.id!==id);
-saveData();
-render();
-}
-
-function recordSale(){
-let id=document.getElementById("saleProduct").value;
-let qty=+document.getElementById("saleQty").value;
-let product=products.find(p=>p.id==id);
-
-if(!product||qty<=0||product.stock<qty){
-alert("Invalid sale");
-return;
-}
-
-product.stock-=qty;
-
-let saleRevenue=product.sell*qty;
-let saleProfit=(product.sell-product.buy)*qty;
-
-revenue+=saleRevenue;
-profit+=saleProfit;
-
-saveData();
-render();
-alert("Sale recorded");
-}
-
-function render(){
-
-document.getElementById("totalProducts").innerText=products.length;
-document.getElementById("lowStock").innerText=products.filter(p=>p.stock<5).length;
-document.getElementById("todayRevenue").innerText="₹"+revenue;
-document.getElementById("totalProfit").innerText="₹"+profit;
-
-let list=document.getElementById("productList");
-list.innerHTML="";
-products.forEach(p=>{
-list.innerHTML+=`
-<div class="product-card">
-<strong>${p.name}</strong><br>
-<span class="small">Stock: ${p.stock}</span><br>
-<span class="small">Buy: ₹${p.buy} | Sell: ₹${p.sell}</span><br>
-<button onclick="deleteProduct(${p.id})" style="background:#ef4444;margin-top:8px">Delete</button>
-</div>`;
-});
-
-let select=document.getElementById("saleProduct");
-select.innerHTML="";
-products.forEach(p=>{
-select.innerHTML+=`<option value="${p.id}">${p.name}</option>`;
-});
-
-document.getElementById("reportRevenue").innerText="₹"+revenue;
-document.getElementById("reportProfit").innerText="₹"+profit;
-}
-
-render();
