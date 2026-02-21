@@ -168,20 +168,6 @@ return `
 </div>
 `;
 }).join("");
-let low=p.stock<20?"stock-low":"";
-return `
-<div class="product-card">
-<div class="product-header">
-<strong>📦 ${p.name}</strong>
-<div class="icon-group">
-<button class="icon-btn" onclick="openEdit(${p.id})">✏️</button>
-<button class="icon-btn" onclick="openDelete(${p.id})">🗑</button>
-</div>
-</div>
-Buy ₹${p.buy} | Sell ₹${p.sell}
-<div class="stock-badge ${low}">Stock: ${p.stock}</div>
-</div>`;
-}).join("");
 
 /* SALES */
 document.getElementById("sales").innerHTML =
