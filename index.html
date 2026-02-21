@@ -1,29 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Smart Inventory Pro</title>
 
 <style>
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto;
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui;}
 
 body{
 background:linear-gradient(180deg,#0f172a,#0b1220);
-color:#fff;
+color:white;
 min-height:100vh;
 }
 
 header{
-padding:22px;
+text-align:center;
+padding:20px;
 font-size:22px;
 font-weight:700;
-text-align:center;
 }
 
 .container{
@@ -67,26 +61,11 @@ background:#1e293b;
 padding:16px;
 border-radius:20px;
 margin-bottom:14px;
-box-shadow:0 6px 18px rgba(0,0,0,0.4);
 }
-
-.product-title{
-font-size:17px;
-font-weight:600;
-margin-bottom:6px;
-}
-
-.stock{
-font-size:13px;
-margin-top:6px;
-}
-
-.low{color:#ef4444;}
-.good{color:#22c55e;}
 
 .sales-product{
 background:#1e293b;
-padding:14px;
+padding:16px;
 border-radius:18px;
 margin-bottom:12px;
 cursor:pointer;
@@ -96,13 +75,20 @@ transition:0.2s;
 .sales-product.active{
 border:2px solid #22c55e;
 background:#132a1d;
+box-shadow:0 0 15px rgba(34,197,94,0.6);
+}
+
+.selected-label{
+margin-top:6px;
+font-size:12px;
+color:#22c55e;
 }
 
 .qty-box{
 display:flex;
 justify-content:center;
 align-items:center;
-gap:16px;
+gap:15px;
 margin-top:15px;
 }
 
@@ -114,22 +100,8 @@ background:#334155;
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:22px;
+font-size:20px;
 cursor:pointer;
-}
-
-.big-report{
-background:#1e293b;
-padding:22px;
-border-radius:22px;
-margin-bottom:16px;
-text-align:center;
-box-shadow:0 8px 20px rgba(0,0,0,0.4);
-}
-
-.big-report h2{
-margin-top:8px;
-font-size:26px;
 }
 
 button{
@@ -142,8 +114,8 @@ font-weight:bold;
 cursor:pointer;
 }
 
-.primary{background:#3b82f6;color:#fff;}
-.danger{background:#ef4444;color:#fff;}
+.primary{background:#3b82f6;color:white;}
+.danger{background:#ef4444;color:white;}
 
 input{
 width:100%;
@@ -151,8 +123,21 @@ padding:12px;
 border-radius:12px;
 border:none;
 background:#334155;
-color:#fff;
+color:white;
 margin-top:10px;
+}
+
+.big-report{
+background:#1e293b;
+padding:22px;
+border-radius:22px;
+margin-bottom:16px;
+text-align:center;
+}
+
+.big-report h2{
+margin-top:8px;
+font-size:26px;
 }
 
 .modal{
@@ -235,22 +220,10 @@ color:#22c55e;
 
 <div id="dashboard" class="section active">
 <div class="cards">
-<div class="card">
-<h3>📦 Products</h3>
-<p id="totalProducts">0</p>
-</div>
-<div class="card">
-<h3>⚠️ Low Stock</h3>
-<p id="lowStock" class="red">0</p>
-</div>
-<div class="card">
-<h3>💰 Revenue</h3>
-<p id="totalRevenue" class="green">₹0</p>
-</div>
-<div class="card">
-<h3>📈 Profit</h3>
-<p id="totalProfit" class="green">₹0</p>
-</div>
+<div class="card"><h3>📦 Products</h3><p id="totalProducts">0</p></div>
+<div class="card"><h3>⚠️ Low Stock</h3><p id="lowStock" class="red">0</p></div>
+<div class="card"><h3>📅 This Month Revenue</h3><p id="monthRevenue" class="green">₹0</p></div>
+<div class="card"><h3>📈 This Month Profit</h3><p id="monthProfit" class="green">₹0</p></div>
 </div>
 </div>
 
@@ -282,14 +255,12 @@ color:#22c55e;
 </div>
 
 <script>
-let products=JSON.parse(localStorage.getItem("products"))||[];
-let revenue=JSON.parse(localStorage.getItem("revenue"))||0;
-let profit=JSON.parse(localStorage.getItem("profit"))||0;
+let products = JSON.parse(localStorage.getItem("products")) || [];
+let salesHistory = JSON.parse(localStorage.getItem("salesHistory")) || [];
 
 function save(){
 localStorage.setItem("products",JSON.stringify(products));
-localStorage.setItem("revenue",JSON.stringify(revenue));
-localStorage.setItem("profit",JSON.stringify(profit));
+localStorage.setItem("salesHistory",JSON.stringify(salesHistory));
 }
 
 function showSection(id,btn){
@@ -304,10 +275,10 @@ function openModal(){document.getElementById("modal").style.display="flex";}
 function closeModal(){document.getElementById("modal").style.display="none";}
 
 function addProduct(){
-let name=document.getElementById("name").value;
-let buy=+document.getElementById("buy").value;
-let sell=+document.getElementById("sell").value;
-let stock=+document.getElementById("stock").value;
+let name=nameInput.value;
+let buy=+buyInput.value;
+let sell=+sellInput.value;
+let stock=+stockInput.value;
 if(!name)return;
 products.push({id:Date.now(),name,buy,sell,stock});
 save();
@@ -327,8 +298,6 @@ let qty=1;
 function selectProduct(id,el){
 selected=products.find(p=>p.id===id);
 qty=1;
-document.querySelectorAll(".sales-product").forEach(x=>x.classList.remove("active"));
-el.classList.add("active");
 render();
 }
 
@@ -341,8 +310,17 @@ render();
 function completeSale(){
 if(!selected||selected.stock<qty)return alert("Invalid sale");
 selected.stock-=qty;
-revenue+=selected.sell*qty;
-profit+=(selected.sell-selected.buy)*qty;
+
+let saleRevenue=selected.sell*qty;
+let saleProfit=(selected.sell-selected.buy)*qty;
+
+salesHistory.push({
+productId:selected.id,
+revenue:saleRevenue,
+profit:saleProfit,
+date:new Date().toISOString()
+});
+
 save();
 selected=null;
 qty=1;
@@ -350,53 +328,81 @@ render();
 }
 
 function render(){
+
 document.getElementById("totalProducts").innerText=products.length;
 document.getElementById("lowStock").innerText=products.filter(p=>p.stock<5).length;
-document.getElementById("totalRevenue").innerText="₹"+revenue;
-document.getElementById("totalProfit").innerText="₹"+profit;
+
+let now=new Date();
+let m=now.getMonth();
+let y=now.getFullYear();
+
+let monthSales=salesHistory.filter(s=>{
+let d=new Date(s.date);
+return d.getMonth()===m && d.getFullYear()===y;
+});
+
+let monthRevenue=monthSales.reduce((sum,s)=>sum+s.revenue,0);
+let monthProfit=monthSales.reduce((sum,s)=>sum+s.profit,0);
+
+document.getElementById("monthRevenue").innerText="₹"+monthRevenue;
+document.getElementById("monthProfit").innerText="₹"+monthProfit;
 
 let pHTML="";
 products.forEach(p=>{
-let status=p.stock<5?"low":"good";
 pHTML+=`
 <div class="product-card">
-<div class="product-title">📦 ${p.name}</div>
-<div>Buy ₹${p.buy} | Sell ₹${p.sell}</div>
-<div class="stock ${status}">Stock: ${p.stock}</div>
+<strong>📦 ${p.name}</strong><br>
+Buy ₹${p.buy} | Sell ₹${p.sell}<br>
+Stock: ${p.stock}
 <button class="danger" onclick="deleteProduct(${p.id})">Delete</button>
 </div>`;
 });
-document.getElementById("products").innerHTML=pHTML;
+productsDiv.innerHTML=pHTML;
 
 let sHTML="";
 products.forEach(p=>{
+let isSelected=selected&&selected.id===p.id;
 sHTML+=`
-<div class="sales-product" onclick="selectProduct(${p.id},this)">
+<div class="sales-product ${isSelected?'active':''}" onclick="selectProduct(${p.id},this)">
 🛒 ${p.name}<br>
 <small>Stock ${p.stock} | ₹${p.sell}</small>
+${isSelected?'<div class="selected-label">✓ Selected</div>':''}
 </div>`;
 });
+
 if(selected){
 sHTML+=`
+<div style="text-align:center;margin-top:10px;">
+Selected: <strong>${selected.name}</strong>
+</div>
 <div class="qty-box">
 <div class="qty-btn" onclick="changeQty(-1)">−</div>
 <div>${qty}</div>
 <div class="qty-btn" onclick="changeQty(1)">+</div>
 </div>
-<button class="primary" onclick="completeSale()">Complete Sale</button>`;
+<button class="primary" onclick="completeSale()">Complete Sale</button>
+`;
 }
-document.getElementById("sales").innerHTML=sHTML;
 
-let stockValue=products.reduce((sum,p)=>sum+(p.buy*p.stock),0);
-document.getElementById("report").innerHTML=`
-<div class="big-report">💰 Revenue<h2 class="green">₹${revenue}</h2></div>
-<div class="big-report">📈 Profit<h2 class="green">₹${profit}</h2></div>
-<div class="big-report">📦 Stock Value<h2>₹${stockValue}</h2></div>
-<div class="big-report">⚠️ Low Stock<h2 class="red">${products.filter(p=>p.stock<5).length}</h2></div>`;
+salesDiv.innerHTML=sHTML;
+
+reportDiv.innerHTML=`
+<div class="big-report">📅 This Month Revenue<h2 class="green">₹${monthRevenue}</h2></div>
+<div class="big-report">📈 This Month Profit<h2 class="green">₹${monthProfit}</h2></div>
+`;
 }
+
+let nameInput=document.getElementById("name");
+let buyInput=document.getElementById("buy");
+let sellInput=document.getElementById("sell");
+let stockInput=document.getElementById("stock");
+
+let productsDiv=document.getElementById("products");
+let salesDiv=document.getElementById("sales");
+let reportDiv=document.getElementById("report");
 
 render();
 </script>
 
 </body>
-</html>
+  </html>
